@@ -5,10 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -43,7 +40,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavController
 import com.example.planzen.models.TaskEntity
-import com.example.planzen.ui.theme.PlanZenTheme
 import com.example.planzen.ui.theme.customColor
 
 @Composable
@@ -60,6 +56,7 @@ fun TaskScreen(
     val openUpdateSheet = rememberSaveable {
         mutableStateOf(false)
     }
+
     var userId by remember {
         mutableStateOf(0)
     }
@@ -79,16 +76,51 @@ fun TaskScreen(
     viewModel.userId.observe(lifecycleOwner) {
         userId = it
     }
-    PlanZenTheme {
-        TaskScreenSkeleton(
-            // goBack = goBack,
-            openAddTaskSheet = {
-                openAddTaskSheet.value = !openAddTaskSheet.value
+
+    TaskScreenSkeleton(
+        // goBack = goBack,
+        openAddTaskSheet = {
+            openAddTaskSheet.value = !openAddTaskSheet.value
+        },
+        retryDataLoad = {
+            viewModel.loadTask()
+        },
+        itemList = tasksList,
+        updateTask = { id, task, status ->
+            viewModel.updateTask(
+                id,
+                task,
+                status
+            )
+        },
+        openUpdateSheet = {
+            openUpdateSheet.value = !openUpdateSheet.value
+        },
+        getUserId = { taskId ->
+            viewModel.getUserId(taskId)
+        }
+    )
+
+    if (openAddTaskSheet.value) {
+        TaskAddSheet(
+            showSheet = openAddTaskSheet,
+            addTask = { task, status ->
+                viewModel.addTask(
+                    task,
+                    status
+                )
             },
-            retryDataLoad = {
+            onSuccess = {
                 viewModel.loadTask()
             },
-            itemList = tasksList,
+            viewModel = viewModel
+
+        )
+    }
+
+    if (openUpdateSheet.value) {
+        TaskUpdateSheet(
+            showSheet = openUpdateSheet,
             updateTask = { id, task, status ->
                 viewModel.updateTask(
                     id,
@@ -96,43 +128,9 @@ fun TaskScreen(
                     status
                 )
             },
-            openUpdateSheet = {
-                openUpdateSheet.value = !openUpdateSheet.value
-            },
-            getUserId = { taskId ->
-                viewModel.getUserId(taskId)
-            }
+            userId = userId,
+            viewModel = viewModel
         )
-        if (openAddTaskSheet.value) {
-            TaskAddSheet(
-                showSheet = openAddTaskSheet,
-                addTask = { task, status ->
-                    viewModel.addTask(
-                        task,
-                        status
-                    )
-                },
-                onSuccess = {
-                    viewModel.loadTask()
-                },
-                viewModel = viewModel
-
-            )
-        }
-        if (openUpdateSheet.value) {
-            TaskUpdateSheet(
-                showSheet = openUpdateSheet,
-                updateTask = { id, task, status ->
-                    viewModel.updateTask(
-                        id,
-                        task,
-                        status
-                    )
-                },
-                userId = userId,
-                viewModel = viewModel
-            )
-        }
     }
 }
 
@@ -161,10 +159,7 @@ fun TaskScreenSkeleton(
 
 ) {
     Scaffold(
-        modifier = Modifier
-            .navigationBarsPadding()
-            .imePadding()
-            .statusBarsPadding(),
+        modifier = Modifier,
         topBar = {
             TopAppBar(
                 title = {
@@ -194,12 +189,13 @@ fun TaskScreenSkeleton(
             ) {
                 Icon(Icons.Filled.Add, contentDescription = null)
             }
-        }
+        },
+        containerColor = Color.Red
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(innerPadding)
+                .fillMaxSize()
         ) {
             LazyColumn(
                 modifier = Modifier

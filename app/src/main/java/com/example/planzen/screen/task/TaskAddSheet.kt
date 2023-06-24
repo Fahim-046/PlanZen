@@ -108,14 +108,13 @@ fun TaskAddSheetSkeleton(
 ) {
     var task by rememberSaveable { mutableStateOf("") }
 
-    var taskStatus by remember { mutableStateOf(false) }
+    val taskStatus by remember { mutableStateOf(false) }
 
     Scaffold(
         Modifier
             .navigationBarsPadding()
             .imePadding()
             .statusBarsPadding()
-            .height(300.dp)
     ) { innerPadding ->
         Column(
             Modifier
@@ -152,7 +151,7 @@ fun TaskAddSheetSkeleton(
                             task,
                             taskStatus
                         )
-                        onSuccess
+                        onSuccess()
                         onCancelClick()
                     }
 

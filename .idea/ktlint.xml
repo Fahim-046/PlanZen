@@ -3,5 +3,7 @@
   <component name="KtlintProjectConfiguration">
     <androidMode>true</androidMode>
     <treatAsErrors>false</treatAsErrors>
+    <lintAfterReformat>false</lintAfterReformat>
+    <formatOnSave>true</formatOnSave>
   </component>
 </project>
