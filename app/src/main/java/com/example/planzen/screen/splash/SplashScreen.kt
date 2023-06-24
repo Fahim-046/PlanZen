@@ -22,18 +22,24 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.planzen.R
+import com.example.planzen.Screen
 import com.example.planzen.ui.theme.PlanZenTheme
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
-    gotoTaskScreen: () -> Unit = {}
+    navController: NavController
 ) {
     LaunchedEffect(key1 = Unit) {
-        delay(3000)
+        delay(1000)
 
-        gotoTaskScreen()
+        navController.navigate("task") {
+            popUpTo(Screen.Splash.route) {
+                inclusive = true
+            }
+        }
     }
     PlanZenTheme {
         // A surface container using the 'background' color from the theme

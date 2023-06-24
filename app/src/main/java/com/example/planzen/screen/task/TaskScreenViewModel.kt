@@ -18,6 +18,13 @@ class TaskScreenViewModel @Inject constructor(
         MutableLiveData<List<TaskEntity>>()
     }
 
+    private val _userId: MutableLiveData<Int> by lazy {
+        MutableLiveData<Int>()
+    }
+
+    val userId: LiveData<Int>
+        get() = _userId
+
     val taskItems: LiveData<List<TaskEntity>?>
         get() = _taskItems
 
@@ -35,11 +42,22 @@ class TaskScreenViewModel @Inject constructor(
     val eventDeleteSuccess: LiveData<Boolean>
         get() = _eventDeleteSuccess
 
+    private val _singleTask: MutableLiveData<TaskEntity> by lazy {
+        MutableLiveData<TaskEntity>()
+    }
+
+    val singleTask: LiveData<TaskEntity>
+        get() = _singleTask
+
+    fun getUserId(id: Int) = viewModelScope.launch {
+        _userId.value = id
+    }
+
     fun updateTask(id: Int, task: String, status: Boolean) = viewModelScope.launch {
         try {
             val response = repository.updateTask(TaskEntity(id, task, status))
-
             _eventSuccess.value = true
+            loadTask()
         } catch (e: Exception) {
             _eventSuccess.value = false
         }
@@ -78,6 +96,7 @@ class TaskScreenViewModel @Inject constructor(
             repository.saveTask(TaskEntity(null, task, taskStatus))
 
             _eventSuccess.value = true
+            loadTask()
         } catch (e: Exception) {
         }
     }
@@ -87,6 +106,14 @@ class TaskScreenViewModel @Inject constructor(
         try {
             repository.deleteTask(id)
             _eventDeleteSuccess.value = true
+            loadTask()
+        } catch (e: Exception) {
+        }
+    }
+
+    fun specificTask(id: Int) = viewModelScope.launch {
+        try {
+            _singleTask.value = repository.specificTask(id)
         } catch (e: Exception) {
         }
     }

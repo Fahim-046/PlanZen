@@ -1,6 +1,7 @@
 package com.example.planzen.screen.task
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,12 +20,12 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,18 +37,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskAddSheet(
-
+fun TaskUpdateSheet(
     showSheet: MutableState<Boolean>,
-    addTask: (task: String, taskStatus: Boolean) -> Unit,
-    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
-    onSuccess: () -> Unit,
-    viewModel: TaskScreenViewModel
+    updateTask: (Int, String, Boolean) -> Unit,
+    userId: Int,
+    viewModel: TaskScreenViewModel,
+    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -57,12 +58,6 @@ fun TaskAddSheet(
             return@rememberModalBottomSheetState sheetState != SheetValue.Hidden
         }
     )
-//    viewModel.eventSuccess.observe(lifecycleOwner) {
-//        if (it) {
-//            onSuccess()
-//        }
-//    }
-
     val goBack: () -> Unit = {
         scope.launch {
             bottomSheetState.hide()
@@ -77,39 +72,46 @@ fun TaskAddSheet(
         onDismissRequest = { showSheet.value = false },
         sheetState = bottomSheetState
     ) {
-        TaskAddSheetSkeleton(
+        TaskUpdateSheetSkeleton(
+            userId = userId,
             goBack = goBack,
-            addTask = addTask,
-            onCancelClick = goBack,
-            onSuccess = onSuccess
-
+            viewModel = viewModel,
+            lifecycleOwner = lifecycleOwner
         )
     }
 }
 
 @Preview
 @Composable
-fun UserAddSheetSkeletonPreview() {
-    TaskAddSheetSkeleton(
-        onCancelClick = {},
-        onSuccess = {}
+fun TaskUpdateSheetSkeletonPreview() {
+    val viewModel: TaskScreenViewModel = hiltViewModel()
+    TaskUpdateSheetSkeleton(
+        0,
+        {},
+        viewModel = viewModel,
+        LocalLifecycleOwner.current
     )
 }
 
 @Composable
-fun TaskAddSheetSkeleton(
+fun TaskUpdateSheetSkeleton(
+    userId: Int,
     goBack: () -> Unit = {},
-    addTask: (
-        task: String,
-        taskStatus: Boolean
-    ) -> Unit = { _, _ -> },
-    onCancelClick: () -> Unit,
-    onSuccess: () -> Unit
+    viewModel: TaskScreenViewModel,
+    lifecycleOwner: LifecycleOwner
 ) {
-    var task by rememberSaveable { mutableStateOf("") }
+    var task by remember { mutableStateOf("") }
+    var taskStatus by remember {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(key1 = Unit) {
+        viewModel.specificTask(userId)
+    }
 
-    var taskStatus by remember { mutableStateOf(false) }
-
+    viewModel.singleTask.observe(lifecycleOwner) {
+        task = it.task
+        taskStatus = it.taskStatus
+    }
     Scaffold(
         Modifier
             .navigationBarsPadding()
@@ -126,7 +128,7 @@ fun TaskAddSheetSkeleton(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Add Task",
+                text = "Update Task",
                 textAlign = TextAlign.Center,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
@@ -137,7 +139,7 @@ fun TaskAddSheetSkeleton(
                 modifier = Modifier.fillMaxWidth(),
                 value = task,
                 onValueChange = { task = it },
-                label = { Text("Add your task") },
+                label = { Text("Update your task") },
                 singleLine = true
             )
             Column(
@@ -145,19 +147,30 @@ fun TaskAddSheetSkeleton(
                     .padding(top = 6.dp),
                 horizontalAlignment = Alignment.End
             ) {
-                OutlinedButton(
-                    modifier = Modifier.padding(top = 4.dp),
-                    onClick = {
-                        addTask(
-                            task,
-                            taskStatus
-                        )
-                        onSuccess
-                        onCancelClick()
-                    }
-
+                Row(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "Save Task")
+                    OutlinedButton(
+
+                        onClick = {
+                            viewModel.deleteTask(userId)
+                            goBack()
+                        }
+
+                    ) {
+                        Text(text = "Delete Task")
+                    }
+                    OutlinedButton(
+                        modifier = Modifier.padding(start = 110.dp),
+
+                        onClick = {
+                            viewModel.updateTask(userId, task, taskStatus)
+                            goBack()
+                        }
+
+                    ) {
+                        Text(text = "Update Task")
+                    }
                 }
             }
         }
