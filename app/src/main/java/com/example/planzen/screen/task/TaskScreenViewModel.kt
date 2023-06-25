@@ -25,7 +25,7 @@ class TaskScreenViewModel @Inject constructor(
     val userId: LiveData<Int>
         get() = _userId
 
-    val taskItems: LiveData<List<TaskEntity>?>
+    val taskItems: LiveData<List<TaskEntity>>
         get() = _taskItems
 
     private val _eventSuccess: MutableLiveData<Boolean> by lazy {

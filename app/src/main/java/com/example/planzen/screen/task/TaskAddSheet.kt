@@ -15,7 +15,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -52,10 +51,7 @@ fun TaskAddSheet(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = false,
-        confirmValueChange = { sheetState ->
-            return@rememberModalBottomSheetState sheetState != SheetValue.Hidden
-        }
+        skipPartiallyExpanded = false
     )
 //    viewModel.eventSuccess.observe(lifecycleOwner) {
 //        if (it) {

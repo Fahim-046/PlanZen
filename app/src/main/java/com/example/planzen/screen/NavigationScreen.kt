@@ -1,8 +1,5 @@
 package com.example.planzen.screen
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -18,27 +15,22 @@ import com.example.planzen.screen.task.TaskScreenViewModel
 fun NavigationScreen() {
     val navController = rememberNavController()
 
-    Scaffold(
-        Modifier
-            .fillMaxSize()
-    ) { innerPadding ->
-        NavHost(
-            modifier = Modifier.padding(innerPadding),
-            navController = navController,
-            startDestination = Screen.Splash.route
-        ) {
-            composable(Screen.Splash.route) {
-                SplashScreen(navController)
-            }
+    NavHost(
+        modifier = Modifier,
+        navController = navController,
+        startDestination = Screen.Splash.route
+    ) {
+        composable(Screen.Splash.route) {
+            SplashScreen(navController)
+        }
 
-            composable(Screen.Task.route) {
-                val viewModel: TaskScreenViewModel = hiltViewModel()
+        composable(Screen.Task.route) {
+            val viewModel: TaskScreenViewModel = hiltViewModel()
 
-                TaskScreen(
-                    viewModel = viewModel,
-                    navController
-                )
-            }
+            TaskScreen(
+                viewModel = viewModel,
+                navController
+            )
         }
     }
 }
