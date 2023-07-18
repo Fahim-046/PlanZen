@@ -179,8 +179,7 @@ fun TaskScreenSkeleton(
             ) {
                 Icon(Icons.Filled.Add, contentDescription = null)
             }
-        },
-        containerColor = Color.Red
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
