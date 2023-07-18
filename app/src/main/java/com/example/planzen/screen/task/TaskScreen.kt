@@ -5,10 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -27,8 +24,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -37,7 +34,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
@@ -45,7 +43,6 @@ import androidx.navigation.NavController
 import com.example.planzen.models.TaskEntity
 import com.example.planzen.ui.theme.PlanZenTheme
 import com.example.planzen.ui.theme.customColor
-import org.w3c.dom.Text
 
 @Composable
 fun TaskScreen(
@@ -61,35 +58,59 @@ fun TaskScreen(
     val openUpdateSheet = rememberSaveable {
         mutableStateOf(false)
     }
-    var userId by remember {
-        mutableStateOf(0)
-    }
 
-    var tasksList by remember {
-        mutableStateOf(listOf<TaskEntity>())
-    }
+    val userId = viewModel.userId.observeAsState()
+
+    val tasksList = viewModel.taskItems.observeAsState()
 
     LaunchedEffect(key1 = Unit) {
         viewModel.loadTask()
     }
-    viewModel.taskItems.observe(lifecycleOwner) {
-        if (it != null) {
-            tasksList = it
+
+    TaskScreenSkeleton(
+        // goBack = goBack,
+        openAddTaskSheet = {
+            openAddTaskSheet.value = !openAddTaskSheet.value
+        },
+        retryDataLoad = {
+            viewModel.loadTask()
+        },
+        itemList = tasksList.value,
+        updateTask = { id, task, status ->
+            viewModel.updateTask(
+                id,
+                task,
+                status
+            )
+        },
+        openUpdateSheet = {
+            openUpdateSheet.value = !openUpdateSheet.value
+        },
+        getUserId = { taskId ->
+            viewModel.getUserId(taskId)
         }
-    }
-    viewModel.userId.observe(lifecycleOwner) {
-        userId = it
-    }
-    PlanZenTheme {
-        TaskScreenSkeleton(
-            // goBack = goBack,
-            openAddTaskSheet = {
-                openAddTaskSheet.value = !openAddTaskSheet.value
+    )
+
+    if (openAddTaskSheet.value) {
+        TaskAddSheet(
+            showSheet = openAddTaskSheet,
+            addTask = { task, status ->
+                viewModel.addTask(
+                    task,
+                    status
+                )
             },
-            retryDataLoad = {
+            onSuccess = {
                 viewModel.loadTask()
             },
-            itemList = tasksList,
+            viewModel = viewModel
+
+        )
+    }
+
+    if (openUpdateSheet.value) {
+        TaskUpdateSheet(
+            showSheet = openUpdateSheet,
             updateTask = { id, task, status ->
                 viewModel.updateTask(
                     id,
@@ -97,57 +118,25 @@ fun TaskScreen(
                     status
                 )
             },
-            openUpdateSheet = {
-                openUpdateSheet.value = !openUpdateSheet.value
-            },
-            getUserId = { taskId ->
-                viewModel.getUserId(taskId)
-            }
+            userId = userId.value ?: 0,
+            viewModel = viewModel
         )
-        if (openAddTaskSheet.value) {
-            TaskAddSheet(
-                showSheet = openAddTaskSheet,
-                addTask = { task, status ->
-                    viewModel.addTask(
-                        task,
-                        status
-                    )
-                },
-                onSuccess = {
-                    viewModel.loadTask()
-                },
-                viewModel = viewModel
-
-            )
-        }
-        if (openUpdateSheet.value) {
-            TaskUpdateSheet(
-                showSheet = openUpdateSheet,
-                updateTask = { id, task, status ->
-                    viewModel.updateTask(
-                        id,
-                        task,
-                        status
-                    )
-                },
-                userId = userId,
-                viewModel = viewModel
-            )
-        }
     }
 }
 
-// @Preview
-// @Composable
-// fun TaskScreenSkeletonPreview() {
-//
-//    dummylist.add(TaskEntity(null, "Fahim", false))
-//    PlanZenTheme {
-//        TaskScreenSkeleton(
-//            // goBack = {}
-//        )
-//    }
-// }
+@Preview
+@Composable
+fun TaskScreenSkeletonPreview() {
+    PlanZenTheme {
+        TaskScreenSkeleton(
+            itemList = listOf(
+                TaskEntity(1, "Fahim", false),
+                TaskEntity(2, "Fahim", false),
+                TaskEntity(3, "Fahim", false)
+            )
+        )
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -155,27 +144,23 @@ fun TaskScreenSkeleton(
     // goBack: () -> Unit,
     openAddTaskSheet: () -> Unit = {},
     retryDataLoad: () -> Unit = {},
-    itemList: List<TaskEntity>,
+    itemList: List<TaskEntity>?,
     updateTask: (Int, String, Boolean) -> Unit = { _, _, _ -> },
     openUpdateSheet: () -> Unit = {},
     getUserId: (Int) -> Unit = { _ -> }
 
 ) {
     Scaffold(
-        modifier = Modifier
-            .imePadding()
-            .statusBarsPadding(),
+        modifier = Modifier,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = "PlanZen",
-                        fontSize = 24.sp,
-                        textAlign = TextAlign.Center,
+                        "PlanZen",
                         fontFamily = FontFamily.Cursive,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        color = Color.White
                     )
                 },
                 colors = TopAppBarDefaults.mediumTopAppBarColors(
@@ -194,20 +179,25 @@ fun TaskScreenSkeleton(
             ) {
                 Icon(Icons.Filled.Add, contentDescription = null)
             }
-        }
+        },
+        containerColor = Color.Red
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(innerPadding)
+                .fillMaxSize()
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
-                items(itemList) { todo ->
-                    List(todo, updateTask, retryDataLoad, openUpdateSheet, getUserId)
+            if (itemList != null) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    items(itemList) { todo ->
+                        List(todo, updateTask, retryDataLoad, openUpdateSheet, getUserId)
+                    }
                 }
+            } else {
+                Text("No Todo!")
             }
         }
     }

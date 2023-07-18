@@ -1,7 +1,6 @@
 package com.example.planzen.screen.splash
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,10 +40,9 @@ fun SplashScreen(
             }
         }
     }
-    PlanZenTheme {
-        // A surface container using the 'background' color from the theme
-        SplashScreenSkeleton()
-    }
+
+    // A surface container using the 'background' color from the theme
+    SplashScreenSkeleton()
 }
 
 @Preview
@@ -59,12 +57,13 @@ fun SplashScreenSkeletonPreview() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SplashScreenSkeleton() {
-    Scaffold { innerPadding ->
+    Scaffold(
+        containerColor = Color(0xFF19A7CE)
+    ) { innerPadding ->
         Column(
             Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
-                .background(color = Color(0xFF19A7CE)),
+                .fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
