@@ -45,6 +45,7 @@ import androidx.navigation.NavController
 import com.example.planzen.models.TaskEntity
 import com.example.planzen.ui.theme.PlanZenTheme
 import com.example.planzen.ui.theme.customColor
+import org.w3c.dom.Text
 
 @Composable
 fun TaskScreen(
@@ -162,7 +163,6 @@ fun TaskScreenSkeleton(
 ) {
     Scaffold(
         modifier = Modifier
-            .navigationBarsPadding()
             .imePadding()
             .statusBarsPadding(),
         topBar = {
