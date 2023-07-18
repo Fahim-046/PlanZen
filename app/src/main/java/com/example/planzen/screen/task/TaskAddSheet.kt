@@ -55,11 +55,6 @@ fun TaskAddSheet(
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = false
     )
-//    viewModel.eventSuccess.observe(lifecycleOwner) {
-//        if (it) {
-//            onSuccess()
-//        }
-//    }
 
     val goBack: () -> Unit = {
         scope.launch {
@@ -140,20 +135,18 @@ fun TaskAddSheetSkeleton(
                 keyboardActions = KeyboardActions.Default
             )
             Column(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .padding(top = 6.dp),
                 horizontalAlignment = Alignment.End
             ) {
-                OutlinedButton(
-                    modifier = Modifier.padding(top = 4.dp),
-                    onClick = {
-                        addTask(
-                            task,
-                            taskStatus
-                        )
-                        onSuccess()
-                        onCancelClick()
-                    }
+                OutlinedButton(modifier = Modifier.padding(top = 4.dp), onClick = {
+                    addTask(
+                        task, taskStatus
+                    )
+                    onSuccess()
+                    onCancelClick()
+                }
 
                 ) {
                     Text(text = "Save Task")
